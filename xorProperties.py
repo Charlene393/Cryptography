@@ -2,36 +2,26 @@
 #Associative: A ⊕ (B ⊕ C) = (A ⊕ B) ⊕ C
 #Identity: A ⊕ 0 = A
 #Self-Inverse: A ⊕ A = 0 
-from functools import reduce
-from operator import xor
+from binascii import unhexlify
 
-# Hexadecimal values provided
-KEY1_hex = "a6c8b6733c9b22de7bc0253266a3867df55acde8635e19c73313"
-KEY2_XOR_KEY1_hex = "37dcb292030faa90d07eec17e3b1c6d8daf94c35d4c9191a5e1e"
-KEY2_XOR_KEY3_hex = "c1545756687e7573db23aa1c3452a098b71a7fbf0fddddde5fc1"
-FLAG_XOR_KEYS_hex = "04ee9855208a2cd59091d04767ae47963170d1660df7f56f5faf"
+def xor_two_str(s1, s2):
+    if len(s1) != len(s2):
+        raise ValueError("XOR EXCEPTION: Strings are not of equal length!")
+    
+    # Perform XOR operation on each pair of hex digits
+    return ''.join(format(int(a, 16) ^ int(b, 16), 'x') for a, b in zip(s1, s2))
 
-# Convert hex to bytes
-KEY1 = bytes.fromhex(KEY1_hex)
-KEY2_XOR_KEY1 = bytes.fromhex(KEY2_XOR_KEY1_hex)
-KEY2_XOR_KEY3 = bytes.fromhex(KEY2_XOR_KEY3_hex)
-FLAG_XOR_KEYS = bytes.fromhex(FLAG_XOR_KEYS_hex)
+# Given keys in hexadecimal format
+KEY1 = "a6c8b6733c9b22de7bc0253266a3867df55acde8635e19c73313"
 
-# Find KEY2
-KEY2 = bytes([x ^ y for x, y in zip(KEY2_XOR_KEY1, KEY1)])
+KEY2 = xor_two_str("37dcb292030faa90d07eec17e3b1c6d8daf94c35d4c9191a5e1e", KEY1)
+print("[-] KEY2: {}".format(KEY2))
 
-# Find KEY3
-KEY3 = bytes([x ^ y for x, y in zip(KEY2_XOR_KEY3, KEY2)])
+KEY3 = xor_two_str("c1545756687e7573db23aa1c3452a098b71a7fbf0fddddde5fc1", KEY2)
+print("[-] KEY3: {}".format(KEY3))
 
-# Find FLAG
-FLAG = bytes([x ^ y ^ z for x, y, z in zip(FLAG_XOR_KEYS, KEY1, KEY3)])
+KEY4 = xor_two_str(xor_two_str(KEY1, KEY2), KEY3)
+print("[-] KEY4: {}\n".format(KEY4))
 
-# Print the FLAG in hexadecimal
-print(f"FLAG in hex: {FLAG.hex()}")
-
-# Try to decode to UTF-8, if it fails, fall back to raw bytes
-try:
-    flag_message = FLAG.decode('utf-8')
-    print(f"crypto{{{flag_message}}}")
-except UnicodeDecodeError:
-    print(f"Decoding failed. FLAG (hex): {FLAG.hex()}")
+FLAG = xor_two_str("04ee9855208a2cd59091d04767ae47963170d1660df7f56f5faf", KEY4)
+print("[*] FLAG: {}".format(unhexlify(FLAG)))
